@@ -36,6 +36,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: fuzz -> target
+          # This is a test
 
       - name: Install cargo-fuzz
         run: cargo install cargo-fuzz
