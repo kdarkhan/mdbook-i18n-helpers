@@ -35,7 +35,8 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: fuzz -> target
+          prefix-key: "fuzz" # Default is "v0-rust"
+          # workspaces: fuzz -> target
           # This is a test
 
       - name: Install cargo-fuzz
@@ -44,7 +45,7 @@ jobs:
       - name: Cache fuzz corpus
         uses: actions/cache@v3
         with:
-          path: fuzz/corpus
+          path: i18n-helpers/fuzz/corpus
           key: fuzz-corpus-${{ github.run_id }}
           restore-keys: |
             fuzz-corpus
