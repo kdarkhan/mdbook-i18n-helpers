@@ -37,18 +37,12 @@ jobs:
         with:
           prefix-key: "fuzz" # Default is "v0-rust"
           # workspaces: fuzz -> target
-          # This is a test
+          cache-directories: |
+            i18n-helpers/fuzz/target
+            i18n-helpers/fuzz/corpus
 
       - name: Install cargo-fuzz
         run: cargo install cargo-fuzz
-
-      - name: Cache fuzz corpus
-        uses: actions/cache@v3
-        with:
-          path: i18n-helpers/fuzz/corpus
-          key: fuzz-corpus-${{ github.run_id }}
-          restore-keys: |
-            fuzz-corpus
 
       - name: Run group_events fuzzer and minimize corpus
         run: |
