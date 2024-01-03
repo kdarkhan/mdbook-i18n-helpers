@@ -1,4 +1,0 @@
-[workspace]
-members = ["i18n-helpers", "mdbook-tera-backend"]
-default-members = ["i18n-helpers"]
-resolver = "2"
