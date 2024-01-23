@@ -29,12 +29,11 @@ jobs:
       - name: Run tests with Coverage report enabled
         run: cargo llvm-cov test --all-features --workspace --codecov --output-path codecov-report.json
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+      - name: Storage coverage in artifacts
+        uses: actions/upload-artifact@v2
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: codecov-report.json
-          fail_ci_if_error: true
+          name: covecov-report
+          path: codecov-report.json
 
   test-other-books:
     strategy:
