@@ -35,7 +35,7 @@ jobs:
               return artifact.name == "codecov-report"
             });
             console.log("Download result is ", JSON.stringify(matchArtifact));
-            var download = await github.actions.downloadArtifact({
+            var download = await github.rest.actions.downloadArtifact({
                owner: context.repo.owner,
                repo: context.repo.repo,
                artifact_id: matchArtifact.id,
