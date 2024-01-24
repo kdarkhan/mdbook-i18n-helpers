@@ -40,7 +40,7 @@ jobs:
             console.log(JSON.stringify(matchArtifact));
 
             console.log("workflow run is");
-            console.log(JSON.stringify(context.payload.workflow_run));
+            console.log(JSON.stringify(context.payload));
 
             var download = await github.rest.actions.downloadArtifact({
                owner: context.repo.owner,
