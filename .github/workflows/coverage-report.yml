@@ -39,6 +39,9 @@ jobs:
             console.log("I am there");
             console.log(JSON.stringify(matchArtifact));
 
+            console.log("workflow run is");
+            console.log(JSON.stringify(context.payload.workflow_run));
+
             var download = await github.rest.actions.downloadArtifact({
                owner: context.repo.owner,
                repo: context.repo.repo,
