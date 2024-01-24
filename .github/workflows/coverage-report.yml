@@ -31,16 +31,17 @@ jobs:
                run_id: context.payload.workflow_run.id,
             });
             console.log(`I am here with ${context.payload.workflow_run.id}`);
-            console.log(JSON.stringify(artifacts));
+            // console.log(JSON.stringify(artifacts));
 
             var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
               return artifact.name == "codecov-report"
-            })[0];
+            });
+            console.log(JSON.stringify(matchArtifact));
 
             var download = await github.rest.actions.downloadArtifact({
                owner: context.repo.owner,
                repo: context.repo.repo,
-               artifact_id: matchArtifact.id,
+               artifact_id: matchArtifact[0].id,
                archive_format: 'zip',
             });
             var fs = require('fs');
