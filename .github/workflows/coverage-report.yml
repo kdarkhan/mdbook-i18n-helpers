@@ -34,8 +34,9 @@ jobs:
             // console.log(JSON.stringify(artifacts));
 
             var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
-              return artifact.name == "codecov-report"
+              return artifact.name == "codecov-report";
             });
+            console.log("I am there");
             console.log(JSON.stringify(matchArtifact));
 
             var download = await github.rest.actions.downloadArtifact({

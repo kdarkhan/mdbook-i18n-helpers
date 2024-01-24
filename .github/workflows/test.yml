@@ -32,7 +32,7 @@ jobs:
       - name: Storage coverage in artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: covecov-report
+          name: codecov-report
           path: codecov-report.json
 
   test-other-books:
