@@ -71,9 +71,11 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: codecov-report.json
           fail_ci_if_error: true
-          override_sha: ${{ github.event.pull_request.head.sha }}
-          override_pr: ${{ github.event.pull_request.number }}
-          # override_pr: ${{ github.event.workflow_run.pull_requests[0].number }}
+          # override_sha: ${{ github.event.pull_request.head.sha }}
+          override_sha: ${{ github.event.workflow_run.pull_requests[0].head.sha }}
+          # override_pr: ${{ github.event.pull_request.number }}
+          override_pr: ${{ github.event.workflow_run.pull_requests[0].number }}
+
           # override_commit: ${{ steps.prepare_report.outputs.override_sha }}
           # override_branch: ${{ steps.prepare_report.outputs.override_branch }}
           # override_build: ${{ steps.prepare_report.outputs.override_build }}
