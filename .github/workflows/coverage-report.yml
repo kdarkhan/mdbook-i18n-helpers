@@ -43,7 +43,7 @@ jobs:
             if (matchArtifact) {
               core.setOutput('override_sha', matchArtifact[0].workflow_run.head_sha);
               core.setOutput('override_branch', matchArtifact[0].workflow_run.head_branch);
-            } eles {
+            } else {
               console.log('Not doing anything because there is no matchArtifact');
             }
 
