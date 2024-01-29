@@ -21,6 +21,7 @@ jobs:
       github.event.workflow_run.conclusion == 'success'
 
     steps:
+
       - name: 'Download artifact'
         id: prepare_report
         uses: actions/github-script@v6
@@ -60,6 +61,11 @@ jobs:
             var fs = require('fs');
             fs.writeFileSync('${{github.workspace}}/codecov-report.zip', Buffer.from(download.data));
       - run: unzip codecov-report.zip
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.prepare_report.outputs.override_sha }}
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
