@@ -12,7 +12,7 @@ jobs:
     name: Coverage report
     runs-on: ubuntu-latest
 
-    if: github.event.workflow_run.event == 'pull_request'
+      # if: github.event.workflow_run.event == 'pull_request'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -24,6 +24,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
+            console.log('Event is ${{github.event.workflow_run.event}}');
             var artifacts = await github.rest.actions.listWorkflowRunArtifacts({
                owner: context.repo.owner,
                repo: context.repo.repo,
@@ -36,10 +37,6 @@ jobs:
 
             if (matchArtifact && matchArtifact[0]) {
               let found = matchArtifact[0];
-
-              core.setOutput('override_sha', matchArtifact[0].workflow_run.head_sha);
-              core.setOutput('override_branch', matchArtifact[0].workflow_run.head_branch);
-              core.setOutput('override_build', matchArtifact[0].workflow_run.id);
 
               var download = await github.rest.actions.downloadArtifact({
                  owner: context.repo.owner,
