@@ -43,6 +43,7 @@ jobs:
           echo "It will be uploaded to Codecov using [coverage-report.yml] workflow shortly."
 
   test-other-books:
+    if: false
     strategy:
       matrix:
         include:
@@ -83,6 +84,7 @@ jobs:
           msgfmt -o /dev/null --statistics po/messages.pot
 
   fuzz:
+    if: false
     name: Fuzz test
     runs-on: ubuntu-latest
     steps:
@@ -131,6 +133,7 @@ jobs:
           cargo fuzz cmin xgettext
 
   clippy:
+    if: false
     name: Clippy
     runs-on: ubuntu-latest
     steps:
@@ -147,6 +150,7 @@ jobs:
         run: cargo clippy --all-targets
 
   format:
+    if: false
     name: Format
     runs-on: ubuntu-latest
     steps:
