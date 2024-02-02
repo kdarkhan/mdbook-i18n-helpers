@@ -41,7 +41,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pr_number
-          path: pr_num.txt
+          path: pr_number.txt
 
       - name: Store commit SHA
         uses: actions/upload-artifact@v4
