@@ -34,8 +34,8 @@ jobs:
           echo "Storing PR number ${{ github.event.number }}"
           echo "${{ github.event.number }}" > pr_number.txt
 
-          echo "Storing commit SHA ${{ github.event.pull_requests[0].head.sha }}"
-          echo "${{ github.event.pull_requests[0].head.sha }}" > commit_sha.txt
+          echo "Storing commit SHA ${{ github.event.pull_request.head.sha }}"
+          echo "${{ github.event.pull_request.head.sha }}" > commit_sha.txt
 
       # Workaround for https://github.com/orgs/community/discussions/25220
       # Triggered sub-workflow is not able to detect the original commit/PR which is available
