@@ -12,10 +12,6 @@ jobs:
     name: Coverage report
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.pull_requests[0].head.sha }}
 
       - name: 'Download existing coverage report'
         id: prepare_report
@@ -94,6 +90,13 @@ jobs:
           echo "override_pr=$(<pr_number.txt)" >> "$GITHUB_OUTPUT"
           echo "override_commit=$(<commit_sha.txt)" >> "$GITHUB_OUTPUT"
 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.parse_previous_artifacts.outputs.override_commit || '' }}
+          path: repo_root
+
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
@@ -102,7 +105,6 @@ jobs:
           fail_ci_if_error: true
           # Manual overrides for these parameters are needed because automatic detection
           # in codecov-action does not work for non-`pull_request` workflows.
-          # override_commit: ${{ github.event.workflow_run.pull_requests[0].head.sha }}
-          # override_pr: ${{ github.event.workflow_run.pull_requests[0].number }}
-          override_commit: ${{ steps.parse_previous_artifacts.outputs.override_commit }}
-          override_pr: ${{ steps.parse_previous_artifacts.outputs.override_pr }}
+          override_commit: ${{ steps.parse_previous_artifacts.outputs.override_commit || '' }}
+          override_pr: ${{ steps.parse_previous_artifacts.outputs.override_pr || '' }}
+          root_dir: ${{ github.workspace }}/repo_root
