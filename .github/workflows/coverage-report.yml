@@ -101,7 +101,7 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: codecov_report.json
+          files: ${{ github.workspace }}/codecov_report.json
           fail_ci_if_error: true
           # Manual overrides for these parameters are needed because automatic detection
           # in codecov-action does not work for non-`pull_request` workflows.
