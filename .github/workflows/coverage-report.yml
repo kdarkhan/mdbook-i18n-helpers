@@ -88,6 +88,9 @@ jobs:
           unzip pr_number.zip
           unzip commit_sha.zip
 
+          echo "Detected PR is: $(<pr_number.txt)"
+          echo "Detected commit_sha is: $(<commit_sha.txt)"
+
           echo "override_pr=$(<pr_number.txt)" >> "$GITHUB_OUTPUT"
           echo "override_commit=$(<commit_sha.txt)" >> "$GITHUB_OUTPUT"
 
