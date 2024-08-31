@@ -363,6 +363,10 @@ pub fn group_events<'a>(events: &'a [(usize, Event<'a>)]) -> Vec<Group<'a>> {
                             let mut next_groups;
                             (next_groups, ctx) = state.into_groups(idx, events, ctx);
                             groups.append(&mut next_groups);
+
+                            // Restart translation: subtle but should be
+                            // needed to handle the skipping of the rest of
+                            // the inlined content.
                             state = State::Translate(idx);
                         }
 
@@ -375,9 +379,6 @@ pub fn group_events<'a>(events: &'a [(usize, Event<'a>)]) -> Vec<Group<'a>> {
                             (next_groups, ctx) = state.into_groups(idx, events, ctx);
                             groups.append(&mut next_groups);
 
-                            // Restart translation: subtle but should be
-                            // needed to handle the skipping of the rest of
-                            // the inlined content.
                             state = State::Translate(idx);
                         }
 
@@ -433,11 +434,13 @@ pub fn group_events<'a>(events: &'a [(usize, Event<'a>)]) -> Vec<Group<'a>> {
     match state {
         State::Translate(start) => groups.push(Group::Translate {
             events: events[start..].into(),
-            comment: "".into(),
-            ctxt: "".into(),
+            comment: std::mem::take(&mut ctx.comments).join(" "),
+            ctxt: std::mem::take(&mut ctx.ctxt).join(" "),
         }),
         State::Skip(start) => groups.push(Group::Skip(events[start..].into())),
     }
+
+    println!("Groups are {:?}", groups);
 
     groups
 }

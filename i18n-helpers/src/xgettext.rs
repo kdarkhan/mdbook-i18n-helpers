@@ -1165,7 +1165,7 @@ mod tests {
                 "src/foo.md",
                 "# Foo\n\
                  \n\
-                <!-- i18n:ctxt: |Menu|File --> Foo\n",
+                <!-- i18n:ctxt |Menu|File --> Foo\n",
             ),
         ])?;
 
@@ -1176,11 +1176,10 @@ mod tests {
                 .messages()
                 .map(|msg| (msg.source(), msg.msgctxt(), msg.msgid()))
                 .collect::<Vec<_>>(),
-            &[(
-                "src/SUMMARY.md:1 src/foo.md:1 src/foo.md:3",
-                "|Menu|File",
-                "Foo"
-            ),]
+            &[
+                ("src/SUMMARY.md:1 src/foo.md:1", "", "Foo"),
+                ("src/foo.md:3", "|Menu|File", "Foo")
+            ]
         );
 
         Ok(())
