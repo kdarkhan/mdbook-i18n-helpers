@@ -5,6 +5,7 @@ use std::sync::OnceLock;
 pub enum Directive {
     Skip,
     Comment(String),
+    Ctxt(String),
 }
 
 pub fn find(html: &str) -> Option<Directive> {
@@ -34,6 +35,15 @@ pub fn find(html: &str) -> Option<Directive> {
                 command[start_of_comment_offset..].trim().into(),
             ))
         }
+        Some("ctxt") => {
+            let start_of_ctxt_offset = std::cmp::min(
+                command.find("ctxt").unwrap() + "ctxt".len() + 1,
+                command.len(),
+            );
+            Some(Directive::Ctxt(
+                command[start_of_ctxt_offset..].trim().into(),
+            ))
+        }
         _ => None,
     }
 }
@@ -48,20 +58,17 @@ mod tests {
 
     #[test]
     fn test_is_comment_skip_directive_simple() {
-        assert!(matches!(find("<!-- i18n:skip -->"), Some(Directive::Skip)));
+        assert_eq!(find("<!-- i18n:skip -->"), Some(Directive::Skip));
     }
 
     #[test]
     fn test_is_comment_skip_directive_tolerates_spaces() {
-        assert!(matches!(find("<!-- i18n: skip -->"), Some(Directive::Skip)));
+        assert_eq!(find("<!-- i18n: skip -->"), Some(Directive::Skip));
     }
 
     #[test]
     fn test_is_comment_skip_directive_tolerates_dashes() {
-        assert!(matches!(
-            find("<!--- i18n:skip ---->"),
-            Some(Directive::Skip)
-        ));
+        assert_eq!(find("<!--- i18n:skip ---->"), Some(Directive::Skip));
     }
 
     #[test]
@@ -76,29 +83,35 @@ mod tests {
 
     #[test]
     fn test_different_prefix() {
-        assert!(matches!(
-            find("<!-- mdbook-xgettext:skip -->"),
-            Some(Directive::Skip)
-        ));
+        assert_eq!(find("<!-- mdbook-xgettext:skip -->"), Some(Directive::Skip));
     }
 
     #[test]
     fn test_comment() {
-        assert!(match find("<!-- i18n:comment: hello world! -->") {
-            Some(Directive::Comment(s)) => {
-                s == "hello world!"
-            }
-            _ => false,
-        });
+        assert_eq!(
+            find("<!-- i18n:comment: hello world! -->"),
+            Some(Directive::Comment("hello world!".into()))
+        );
     }
 
     #[test]
     fn test_empty_comment_does_nothing() {
-        assert!(match find("<!-- i18n:comment -->") {
-            Some(Directive::Comment(s)) => {
-                s.is_empty()
-            }
-            _ => false,
-        });
+        assert_eq!(
+            find("<!-- i18n:comment -->"),
+            Some(Directive::Comment("".into()))
+        );
+    }
+
+    #[test]
+    fn test_ctxt() {
+        assert_eq!(
+            find("<!-- i18n:ctxt: hello world! -->"),
+            Some(Directive::Ctxt("hello world!".into()))
+        );
+    }
+
+    #[test]
+    fn test_empty_ctxt_does_nothing() {
+        assert_eq!(find("<!-- i18n:ctxt -->"), Some(Directive::Ctxt("".into())));
     }
 }

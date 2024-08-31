@@ -19,9 +19,6 @@ to install three binaries:
 - `mdbook-i18n-normalize`: This program normalizs a PO file. Use it after
   breaking changes.
 
-[`mdbook` renderer]: https://rust-lang.github.io/mdBook/format/configuration/renderers.html
-[`mdbook` preprocessor]: https://rust-lang.github.io/mdBook/format/configuration/preprocessors.html
-
 Together, the two programs makes it possible to do i18n for `mdbook` in a
 standard and maintainable way.
 
@@ -54,9 +51,6 @@ their target language.
 
 We will show how to update and manipulate the `.po` and `.pot` files using the
 GNU Gettext utilities below.
-
-[Gettext]: https://www.gnu.org/software/gettext/manual/html_node/index.html
-[ISO 639]: https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
 
 ## Creating and Updating Translations
 
@@ -190,8 +184,6 @@ extra-watch-dirs = ["po"]
 
 Please see the [`publish.yml`] workflow in the Comprehensive Rust 🦀 repository.
 
-[`publish.yml`]: https://github.com/google/comprehensive-rust/blob/main/.github/workflows/publish.yml
-
 ## Marking Sections with a comment
 
 A block can be marked with a comment for translation by prepending a special
@@ -242,6 +234,43 @@ Itemized list:
 Note that we don't extract the full text of code blocks. Only text that is
 recognized as comments and literal strings is extracted.
 
+## Add context to the translation msgid
+
+An additional translation context could be added to `msgid` using
+`<!-- i18n:ctxt: XXX -->` directive. This feature of gettext is documented
+[here](https://www.gnu.org/software/gettext/manual/html_node/Contexts.html).
+Provided ctxt will be used together with `msgid` in order to find
+the translation
+
+For example:
+
+```markdown
+The following snippets will have an additional context.
+
+The UI contains following items:
+* File
+  * New
+  * <!-- i18n:ctxt: |Menu|File --> Open
+* Printer
+  * <!-- i18n:ctxt: |Menu|Printer --> Open
+```
+
+This will generate the entries in PO file:
+
+```
+#: src/input.md
+msgctxt "|Menu|File"
+msgid "Open"
+msgstr ""
+
+#: src/input.md
+msgctxt "|Menu|Printer"
+msgid "Open"
+msgstr ""
+```
+
+````
+
 ## Normalizing Existing PO Files
 
 When mdbook-i18n-helpers change, the generated PO files change as well. This can
@@ -254,7 +283,7 @@ version 0.1.0 will output a list as a whole:
 ```markdown
 - foo
 - bar
-```
+````
 
 becomes
 
@@ -302,3 +331,9 @@ msgstr "BAR"
 
 You will only need to run `mdbook-i18n-normalize` once after upgrading
 mdbook-i18n-helpers.
+
+[gettext]: https://www.gnu.org/software/gettext/manual/html_node/index.html
+[iso 639]: https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+[`mdbook` preprocessor]: https://rust-lang.github.io/mdBook/format/configuration/preprocessors.html
+[`mdbook` renderer]: https://rust-lang.github.io/mdBook/format/configuration/renderers.html
+[`publish.yml`]: https://github.com/google/comprehensive-rust/blob/main/.github/workflows/publish.yml

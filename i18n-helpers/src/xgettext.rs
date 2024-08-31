@@ -40,15 +40,18 @@ fn strip_link(text: &str) -> String {
     without_link
 }
 
-fn add_message(catalog: &mut Catalog, msgid: &str, source: &str, comment: &str) {
-    let sources = match catalog.find_message(None, msgid, None) {
+fn add_message(catalog: &mut Catalog, msgid: &str, source: &str, comment: &str, ctxt: &str) {
+    let maybe_ctxt = if ctxt.is_empty() { None } else { Some(ctxt) };
+    let sources = match catalog.find_message(maybe_ctxt, msgid, None) {
         Some(msg) => format!("{}\n{}", msg.source(), source),
         None => String::from(source),
     };
+    println!("ctxt is {} and msg id is {}", ctxt, msgid);
     let message = Message::build_singular()
         .with_source(sources)
         .with_msgid(String::from(msgid))
         .with_comments(String::from(comment))
+        .with_msgctxt(String::from(ctxt))
         .done();
     catalog.append_or_update(message);
 }
@@ -152,6 +155,7 @@ where
             &strip_link(&msgid),
             &source,
             &extracted_msg.comment,
+            &extracted_msg.ctxt,
         );
     }
 
@@ -219,7 +223,13 @@ where
             for (lineno, extracted) in extract_messages(&chapter.content) {
                 let msgid = extracted.message;
                 let source = build_source(&path, lineno, granularity);
-                add_message(catalog, &msgid, &source, &extracted.comment);
+                add_message(
+                    catalog,
+                    &msgid,
+                    &source,
+                    &extracted.comment,
+                    &extracted.ctxt,
+                );
             }
 
             // Add the contents for all of the sub-chapters within the
@@ -239,7 +249,13 @@ where
                 for (lineno, extracted) in extract_messages(&content) {
                     let msgid = extracted.message;
                     let source = build_source(&path, lineno, granularity);
-                    add_message(catalog, &msgid, &source, &extracted.comment);
+                    add_message(
+                        catalog,
+                        &msgid,
+                        &source,
+                        &extracted.comment,
+                        &extracted.ctxt,
+                    );
                 }
             }
         }
@@ -704,8 +720,8 @@ mod tests {
 
         Ok(())
     }
-    #[test]
 
+    #[test]
     fn test_create_catalog_nested_directories_respects_granularity() -> anyhow::Result<()> {
         let (ctx, _tmp) = create_render_context(&[
             (
@@ -1136,6 +1152,36 @@ mod tests {
                 expected_msgids
             );
         }
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_create_catalog_msgctxt() -> anyhow::Result<()> {
+        let (ctx, _tmp) = create_render_context(&[
+            ("book.toml", "[book]"),
+            ("src/SUMMARY.md", "- [Foo](foo.md)"),
+            (
+                "src/foo.md",
+                "# Foo\n\
+                 \n\
+                <!-- i18n:ctxt: |Menu|File --> Foo\n",
+            ),
+        ])?;
+
+        let catalogs = create_catalogs(&ctx, std::fs::read_to_string)?;
+        let catalog = &catalogs[&default_template_file()];
+        assert_eq!(
+            catalog
+                .messages()
+                .map(|msg| (msg.source(), msg.msgctxt(), msg.msgid()))
+                .collect::<Vec<_>>(),
+            &[(
+                "src/SUMMARY.md:1 src/foo.md:1 src/foo.md:3",
+                "|Menu|File",
+                "Foo"
+            ),]
+        );
 
         Ok(())
     }

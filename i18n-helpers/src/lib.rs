@@ -171,6 +171,8 @@ pub enum Group<'a> {
         events: Vec<(usize, Event<'a>)>,
         /// A comment that may be associated with the translation text.
         comment: String,
+        /// Translation context that may be associated with the translation text.
+        ctxt: String,
     },
 
     /// Markdown events which should be skipped when translating.
@@ -184,6 +186,7 @@ pub enum Group<'a> {
 struct GroupingContext {
     skip_next_group: bool,
     comments: Vec<String>,
+    ctxt: Vec<String>,
 }
 
 impl GroupingContext {
@@ -230,7 +233,7 @@ impl GroupingContext {
 ///         Group::Translate {
 ///             events: vec![
 ///                 (1, Event::Text("A list item.".into())),
-///             ], comment: "".into()},
+///             ], comment: "".into(), ctxt: "".into()},
 ///         Group::Skip(vec![
 ///             (1, Event::End(TagEnd::Item)),
 ///             (1, Event::End(TagEnd::List(false))),
@@ -267,6 +270,7 @@ pub fn group_events<'a>(events: &'a [(usize, Event<'a>)]) -> Vec<Group<'a>> {
                             vec![Group::Translate {
                                 events: events[start..idx].into(),
                                 comment: std::mem::take(&mut ctx.comments).join(" "),
+                                ctxt: std::mem::take(&mut ctx.ctxt).join(" "),
                             }],
                             ctx,
                         )
@@ -359,6 +363,17 @@ pub fn group_events<'a>(events: &'a [(usize, Event<'a>)]) -> Vec<Group<'a>> {
                             let mut next_groups;
                             (next_groups, ctx) = state.into_groups(idx, events, ctx);
                             groups.append(&mut next_groups);
+                            state = State::Translate(idx);
+                        }
+
+                        ctx.comments.push(comment);
+                    }
+                    Some(directives::Directive::Ctxt(ctxt)) => {
+                        // If in the middle of translation, finish it.
+                        if let State::Translate(_) = state {
+                            let mut next_groups;
+                            (next_groups, ctx) = state.into_groups(idx, events, ctx);
+                            groups.append(&mut next_groups);
 
                             // Restart translation: subtle but should be
                             // needed to handle the skipping of the rest of
@@ -366,7 +381,9 @@ pub fn group_events<'a>(events: &'a [(usize, Event<'a>)]) -> Vec<Group<'a>> {
                             state = State::Translate(idx);
                         }
 
-                        ctx.comments.push(comment);
+                        println!("Found ctxt {}", ctxt);
+
+                        ctx.ctxt.push(ctxt);
                     }
                     _ => {
                         match event {
@@ -417,6 +434,7 @@ pub fn group_events<'a>(events: &'a [(usize, Event<'a>)]) -> Vec<Group<'a>> {
         State::Translate(start) => groups.push(Group::Translate {
             events: events[start..].into(),
             comment: "".into(),
+            ctxt: "".into(),
         }),
         State::Skip(start) => groups.push(Group::Skip(events[start..].into())),
     }
@@ -467,6 +485,7 @@ fn heuristic_codeblock<'a>(
             vec![Group::Translate {
                 events: events.into(),
                 comment: std::mem::take(&mut ctx.comments).join(" "),
+                ctxt: std::mem::take(&mut ctx.ctxt).join(" "),
             }],
             ctx,
         )
@@ -509,6 +528,7 @@ fn parse_codeblock<'a>(
                     ret.push(Group::Translate {
                         events: events[idx..idx + 1].into(),
                         comment: std::mem::take(&mut ctx.comments).join(" "),
+                        ctxt: std::mem::take(&mut ctx.ctxt).join(" "),
                     });
                     continue;
                 };
@@ -551,6 +571,7 @@ fn parse_codeblock<'a>(
                             groups.push(Group::Translate {
                                 events: std::mem::take(&mut translate_events),
                                 comment: std::mem::take(&mut ctx.comments).join(" "),
+                                ctxt: std::mem::take(&mut ctx.ctxt).join(" "),
                             });
                         }
                         if !whitespace_events.is_empty() {
@@ -565,6 +586,7 @@ fn parse_codeblock<'a>(
                     groups.push(Group::Translate {
                         events: std::mem::take(&mut translate_events),
                         comment: std::mem::take(&mut ctx.comments).join(" "),
+                        ctxt: std::mem::take(&mut ctx.ctxt).join(" "),
                     });
                 }
                 if !whitespace_events.is_empty() {
@@ -576,6 +598,7 @@ fn parse_codeblock<'a>(
                     ret.push(Group::Translate {
                         events: events[idx..idx + 1].into(),
                         comment: std::mem::take(&mut ctx.comments).join(" "),
+                        ctxt: std::mem::take(&mut ctx.ctxt).join(" "),
                     });
                 } else {
                     ret.append(&mut groups);
@@ -669,12 +692,14 @@ pub fn reconstruct_markdown<'a>(
 pub struct ExtractedMessage {
     pub message: String,
     pub comment: String,
+    pub ctxt: String,
 }
 impl From<&str> for ExtractedMessage {
     fn from(s: &str) -> Self {
         ExtractedMessage {
             message: s.to_owned(),
             comment: "".into(),
+            ctxt: "".into(),
         }
     }
 }
@@ -733,7 +758,11 @@ pub fn extract_messages(document: &str) -> Vec<(usize, ExtractedMessage)> {
 
     for group in group_events(&events) {
         match group {
-            Group::Translate { events, comment } => {
+            Group::Translate {
+                events,
+                comment,
+                ctxt,
+            } => {
                 if let Some((lineno, _)) = events.first() {
                     let (text, new_state) = reconstruct_markdown(&events, state);
                     // Skip empty messages since they are special:
@@ -744,6 +773,7 @@ pub fn extract_messages(document: &str) -> Vec<(usize, ExtractedMessage)> {
                             ExtractedMessage {
                                 message: text,
                                 comment,
+                                ctxt,
                             },
                         ));
                     }
@@ -1695,6 +1725,7 @@ Hello world!
                 ExtractedMessage {
                     message: "Hello world!".into(),
                     comment: "first comment!".into(),
+                    ctxt: "".into(),
                 }
             )]
         );
@@ -1715,6 +1746,7 @@ Greetings!
                 ExtractedMessage {
                     message: "Greetings!".into(),
                     comment: "this is a test of a comment that spans.".into(),
+                    ctxt: "".into(),
                 }
             )]
         );
@@ -1743,6 +1775,7 @@ after-no-comment
                     ExtractedMessage {
                         message: "before-no-comment".into(),
                         comment: "".into(),
+                        ctxt: "".into(),
                     }
                 ),
                 (
@@ -1750,6 +1783,7 @@ after-no-comment
                     ExtractedMessage {
                         message: "Hello again, this is some text with a comment on it.".into(),
                         comment: "another".into(),
+                        ctxt: "".into(),
                     }
                 ),
                 (
@@ -1757,6 +1791,7 @@ after-no-comment
                     ExtractedMessage {
                         message: "after".into(),
                         comment: "one more comment.".into(),
+                        ctxt: "".into(),
                     }
                 ),
                 (
@@ -1764,6 +1799,7 @@ after-no-comment
                     ExtractedMessage {
                         message: "after-no-comment".into(),
                         comment: "".into(),
+                        ctxt: "".into(),
                     }
                 ),
             ]
@@ -1786,6 +1822,7 @@ print("Hello world")
                 ExtractedMessage {
                     message: "\"Hello world\"".into(),
                     comment: "greetings!".into(),
+                    ctxt: "".into(),
                 }
             ),]
         );
