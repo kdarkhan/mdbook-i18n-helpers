@@ -19,9 +19,6 @@ to install three binaries:
 - `mdbook-i18n-normalize`: This program normalizs a PO file. Use it after
   breaking changes.
 
-[`mdbook` renderer]: https://rust-lang.github.io/mdBook/format/configuration/renderers.html
-[`mdbook` preprocessor]: https://rust-lang.github.io/mdBook/format/configuration/preprocessors.html
-
 Together, the two programs makes it possible to do i18n for `mdbook` in a
 standard and maintainable way.
 
@@ -54,9 +51,6 @@ their target language.
 
 We will show how to update and manipulate the `.po` and `.pot` files using the
 GNU Gettext utilities below.
-
-[Gettext]: https://www.gnu.org/software/gettext/manual/html_node/index.html
-[ISO 639]: https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
 
 ## Creating and Updating Translations
 
@@ -190,8 +184,6 @@ extra-watch-dirs = ["po"]
 
 Please see the [`publish.yml`] workflow in the Comprehensive Rust 🦀 repository.
 
-[`publish.yml`]: https://github.com/google/comprehensive-rust/blob/main/.github/workflows/publish.yml
-
 ## Marking Sections with a comment
 
 A block can be marked with a comment for translation by prepending a special
@@ -302,3 +294,9 @@ msgstr "BAR"
 
 You will only need to run `mdbook-i18n-normalize` once after upgrading
 mdbook-i18n-helpers.
+
+[gettext]: https://www.gnu.org/software/gettext/manual/html_node/index.html
+[iso 639]: https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+[`mdbook` preprocessor]: https://rust-lang.github.io/mdBook/format/configuration/preprocessors.html
+[`mdbook` renderer]: https://rust-lang.github.io/mdBook/format/configuration/renderers.html
+[`publish.yml`]: https://github.com/google/comprehensive-rust/blob/main/.github/workflows/publish.yml

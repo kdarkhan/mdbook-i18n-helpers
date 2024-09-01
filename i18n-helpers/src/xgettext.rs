@@ -1139,4 +1139,50 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_create_catalog_comment_directive() -> anyhow::Result<()> {
+        let (ctx, _tmp) = create_render_context(&[
+            ("book.toml", "[book]"),
+            ("src/SUMMARY.md", "- [The Foo Chapter](foo.md)"),
+            (
+                "src/foo.md",
+                "# How to Foo\n\n\n\
+                <!-- i18n:comment this is comment --> The first paragraph about Foo.",
+            ),
+        ])?;
+
+        let catalogs = create_catalogs(&ctx, std::fs::read_to_string)?;
+        let catalog = &catalogs[&default_template_file()];
+
+        for msg in catalog.messages() {
+            println!(
+                "message is {} {:?} {} {}",
+                msg.msgid(),
+                msg.msgstr(),
+                msg.msgctxt(),
+                msg.comments()
+            );
+            assert!(!msg.is_translated());
+        }
+
+        let expected_message_tuples = vec![
+            ("src/SUMMARY.md:1", "The Foo Chapter", ""),
+            ("src/foo.md:1", "How to Foo", ""),
+            (
+                "src/foo.md:4",
+                "The first paragraph about Foo.",
+                "this is comment",
+            ),
+        ];
+
+        let message_tuples = catalog
+            .messages()
+            .map(|msg| (msg.source(), msg.msgid(), msg.comments()))
+            .collect::<Vec<(&str, &str, &str)>>();
+
+        assert_eq!(expected_message_tuples, message_tuples);
+
+        Ok(())
+    }
 }
