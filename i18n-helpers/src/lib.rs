@@ -286,7 +286,7 @@ pub fn group_events<'a>(events: &'a [(usize, Event<'a>)]) -> Vec<Group<'a>> {
             // These block-level events force new groups. We do this
             // because we want to include these events in the group to
             // make the group self-contained.
-            Event::Start(Tag::Paragraph | Tag::CodeBlock(..)) => {
+            Event::Start(Tag::Paragraph | Tag::CodeBlock(..) | Tag::HtmlBlock) => {
                 // A translatable group starts here.
                 let mut next_groups;
                 (next_groups, ctx) = state.into_groups(idx, events, ctx);
@@ -294,7 +294,7 @@ pub fn group_events<'a>(events: &'a [(usize, Event<'a>)]) -> Vec<Group<'a>> {
 
                 state = State::Translate(idx);
             }
-            Event::End(TagEnd::Paragraph | TagEnd::CodeBlock) => {
+            Event::End(TagEnd::Paragraph | TagEnd::CodeBlock | TagEnd::HtmlBlock) => {
                 // A translatable group ends after `idx`.
                 let idx = idx + 1;
                 let mut next_groups;
@@ -310,14 +310,16 @@ pub fn group_events<'a>(events: &'a [(usize, Event<'a>)]) -> Vec<Group<'a>> {
                 | Tag::Strong
                 | Tag::Strikethrough
                 | Tag::Link { .. }
-                | Tag::Image { .. },
+                | Tag::Image { .. }
+                | Tag::Heading { .. },
             )
             | Event::End(
                 TagEnd::Emphasis
                 | TagEnd::Strong
                 | TagEnd::Strikethrough
                 | TagEnd::Link
-                | TagEnd::Image,
+                | TagEnd::Image
+                | TagEnd::Heading(_),
             )
             | Event::Text(_)
             | Event::Code(_)
@@ -401,7 +403,10 @@ pub fn group_events<'a>(events: &'a [(usize, Event<'a>)]) -> Vec<Group<'a>> {
 
             // All other block-level events start or continue a
             // skipping group.
-            _ => {
+            Event::DisplayMath(_)
+            | Event::InlineMath(_)
+            | Event::Rule
+            | Event::TaskListMarker(_) => {
                 if let State::Translate(_) = state {
                     let mut next_groups;
                     (next_groups, ctx) = state.into_groups(idx, events, ctx);
@@ -416,7 +421,7 @@ pub fn group_events<'a>(events: &'a [(usize, Event<'a>)]) -> Vec<Group<'a>> {
     match state {
         State::Translate(start) => groups.push(Group::Translate {
             events: events[start..].into(),
-            comment: "".into(),
+            comment: std::mem::take(&mut ctx.comments).join(" "),
         }),
         State::Skip(start) => groups.push(Group::Skip(events[start..].into())),
     }
