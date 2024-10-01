@@ -1168,7 +1168,7 @@ mod tests {
 
         let expected_message_tuples = vec![
             ("src/SUMMARY.md:1", "The Foo Chapter", ""),
-            ("src/foo.md:1", "How to Foo", ""),
+            ("src/foo.md:1", "# How to Foo", ""),
             (
                 "src/foo.md:4",
                 "The first paragraph about Foo.",
